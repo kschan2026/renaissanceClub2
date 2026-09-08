@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="동아리 전시자료 제작 웹앱" name="description"/>
+<title>동아리 전시자료 제작</title>
+<link href="./style.css" rel="stylesheet"/>
+<script src="./js/main.js" type="module"></script>
+</head>
+<body>
+<!-- ======================================================
+       상단 메뉴
+  ======================================================= -->
+<header class="app-header">
+<div class="app-header__brand">
+<div aria-hidden="true" class="brand-mark">
+</div>
+<div class="brand-text">
+<h1>
+          동아리 전시자료 제작
+        </h1>
+<p>
+          활동 내용과 사진을 활용해 전시자료를 제작합니다.
+        </p>
+</div>
+</div>
+<div class="app-header__right">
+<div aria-live="polite" class="save-status" id="save-status">
+        새 작업
+      </div>
+<nav aria-label="프로젝트 기능" class="top-actions">
+<button class="btn btn--ghost" id="btn-new" type="button">
+          새로 만들기
+        </button>
+<button class="btn btn--ghost" id="btn-load-cloud" type="button">
+          클라우드 불러오기
+        </button>
+<div aria-hidden="true" class="top-actions__divider"></div>
+<button class="btn btn--secondary" id="btn-save-draft" type="button">
+          작성 중 저장
+        </button>
+<button class="btn btn--primary" id="btn-save-complete" type="button">
+          완성본 저장
+        </button>
+</nav>
+</div>
+</header>
+<!-- ======================================================
+       전체 작업 영역
+  ======================================================= -->
+<main class="workspace">
+<!-- ====================================================
+         왼쪽 편집기
+    ===================================================== -->
+<section aria-label="전시자료 편집" class="editor-pane">
+<div class="editor-pane__header">
+<div>
+<h2>편집 도구</h2>
+<p>글과 사진은 용지에서 직접 편집합니다.</p>
+</div>
+
+</div>
+<div class="editor-scroll">
+<!-- ================================================
+             1. 기본 정보
+        ================================================= -->
+<section class="editor-section">
+<div class="section-heading">
+<div class="section-heading__number">
+              1
+            </div>
+<div>
+<h3>자료 종류</h3>
+<p>종류별 바탕색을 선택합니다.</p>
+</div>
+</div>
+<div class="form-grid">
+<!-- 동아리 종류 -->
+<div class="field field--full">
+<span class="field__label">
+                동아리 종류
+              </span>
+<div aria-label="동아리 종류" class="segmented-control" role="radiogroup">
+<label class="segmented-option">
+<input checked="" name="clubType" type="radio" value="autonomous"/>
+<span>
+                    자율동아리
+                  </span>
+</label>
+<label class="segmented-option">
+<input name="clubType" type="radio" value="creative"/>
+<span>
+                    창체동아리
+                  </span>
+</label>
+<label class="segmented-option"><input name="clubType" type="radio" value="free-semester"/><span>자유학기</span></label></div>
+<p class="field__help">
+                동아리 종류에 따라 전시자료의 기본 바탕색이 자동으로 변경됩니다.
+              </p>
+</div>
+<!-- 동아리명 -->
+
+<!-- 담당교사 -->
+
+</div>
+</section>
+<!-- ================================================
+             2. 활동 내용
+        ================================================= -->
+<section class="editor-section"><div class="ai-panel">
+<div class="ai-panel__info">
+<div aria-hidden="true" class="ai-icon">
+                ✦
+              </div>
+<div>
+<strong>
+                  전체 활동 AI로 다듬기
+                </strong>
+<p>
+                  작성한 모든 활동의 제목과 내용을 한 번에 자연스럽게 정리합니다.
+                </p>
+<p class="ai-panel__privacy">
+                  AI에는 활동 제목과 활동 내용만 전송됩니다.
+                  담당교사, 동아리명, 사진 및 사진 설명은 전송되지 않습니다.
+                </p>
+<p class="ai-panel__cache">
+                  같은 내용을 연속으로 요청하면 5분 동안 동일한 결과가 표시될 수 있습니다.
+                </p>
+</div>
+</div>
+<div class="ai-panel__actions">
+<button class="btn btn--ghost" hidden="" id="btn-ai-undo" type="button">
+                AI 수정 취소
+              </button>
+<button class="btn btn--ai" id="btn-ai-improve-all" type="button">
+                ✦ 전체 활동 다듬기
+              </button>
+</div>
+</div></section>
+<!-- ================================================
+             3. 레이아웃 편집
+        ================================================= -->
+<section class="editor-section">
+<div class="section-heading">
+<div class="section-heading__number">2</div>
+<div>
+<h3>
+                레이아웃 편집
+              </h3>
+<p>블록의 위치와 크기를 조절합니다.</p>
+</div>
+</div>
+<!-- 편집 모드 -->
+<div class="layout-mode-card">
+<div>
+<strong>
+                자유 배치 편집
+              </strong>
+<p>
+                켜면 오른쪽 미리보기에서 블록을 이동하고 크기를 조절할 수 있습니다.
+              </p>
+</div>
+<label class="switch-control">
+<input id="toggle-layout-edit" type="checkbox"/>
+<span class="switch-control__track">
+<span class="switch-control__thumb"></span>
+</span>
+<span class="sr-only">
+                레이아웃 편집 모드
+              </span>
+</label>
+</div>
+<!-- 블록 추가 -->
+<div aria-disabled="true" class="layout-tools" id="layout-tools">
+<div class="subheading">
+<div>
+<strong>
+                  블록 추가
+                </strong>
+<span>
+                  필요한 요소만 추가하세요.
+                </span>
+</div>
+</div>
+<div class="block-add-grid">
+<button class="block-add-button" data-add-block-type="subtitle" disabled="" type="button">
+<span aria-hidden="true" class="block-add-button__icon">
+                  T
+                </span>
+<span>
+<strong>
+                    소제목
+                  </strong>
+<small>
+                    짧은 제목 블록
+                  </small>
+</span>
+</button>
+<button class="block-add-button" data-add-block-type="text" disabled="" type="button">
+<span aria-hidden="true" class="block-add-button__icon">
+                  ≡
+                </span>
+<span>
+<strong>
+                    텍스트
+                  </strong>
+<small>
+                    자유 설명 글
+                  </small>
+</span>
+</button>
+<button class="block-add-button" data-add-block-type="photo" disabled="" type="button">
+<span aria-hidden="true" class="block-add-button__icon">
+                  ▧
+                </span>
+<span>
+<strong>
+                    사진
+                  </strong>
+<small>
+                    사진만 표시
+                  </small>
+</span>
+</button>
+<button class="block-add-button" data-add-block-type="photo-caption" disabled="" type="button">
+<span aria-hidden="true" class="block-add-button__icon">
+                  ▣
+                </span>
+<span>
+<strong>
+                    사진 + 설명
+                  </strong>
+<small>
+                    캡션이 있는 사진
+                  </small>
+</span>
+</button>
+</div>
+</div>
+<!-- 선택된 블록 설정 -->
+<div class="block-inspector" hidden="" id="block-inspector">
+<div class="subheading">
+<div>
+<strong>
+                  선택한 블록
+                </strong>
+<span id="selected-block-label">
+                  -
+                </span>
+</div>
+</div>
+<div class="block-inspector__content" id="block-inspector-content">
+</div>
+<div class="block-inspector__actions">
+<button class="mini-btn" id="btn-block-send-back" type="button">
+                뒤로
+              </button>
+<button class="mini-btn" id="btn-block-bring-front" type="button">
+                앞으로
+              </button>
+<button class="mini-btn mini-btn--danger" id="btn-block-delete" type="button">
+                블록 삭제
+              </button>
+</div>
+</div>
+<!-- 레이아웃 초기화 -->
+<div class="layout-reset">
+<div>
+<strong>
+                기본 배치로 돌아가기
+              </strong>
+<p>
+                입력한 글과 사진은 유지하고 위치와 크기만 기본 양식으로 되돌립니다.
+              </p>
+</div>
+<button class="btn btn--ghost" id="btn-layout-reset" type="button">
+              레이아웃 초기화
+            </button>
+</div>
+</section>
+<!-- 편집 하단 여백 -->
+<div aria-hidden="true" class="editor-bottom-space"></div>
+</div>
+</section>
+<div class="workspace-splitter" id="workspace-splitter" title="드래그하여 화면 비율 조절"></div>
+<!-- ====================================================
+         오른쪽 미리보기
+    ===================================================== -->
+<aside aria-label="전시자료 미리보기" class="preview-pane">
+<!-- 미리보기 상단 -->
+<div class="preview-toolbar">
+<div>
+<strong>전시자료 편집</strong>
+<span id="paper-size-label">A2 · 420 × 594 mm</span>
+</div>
+<div class="preview-toolbar__actions">
+<button aria-label="미리보기 축소" class="icon-btn" id="btn-zoom-out" title="축소" type="button">
+            −
+          </button>
+<span class="zoom-label" id="zoom-label">100%</span>
+<button aria-label="미리보기 확대" class="icon-btn" id="btn-zoom-in" title="확대" type="button">
+            +
+          </button>
+<button class="mini-btn" id="btn-download" type="button">PNG · PDF 다운로드</button></div>
+</div>
+<!-- A4 출력물 영역 -->
+<div class="preview-stage">
+<div class="poster-wrapper" id="poster-wrapper">
+<article class="poster" data-club-type="autonomous" data-layout-editing="false" id="poster-canvas">
+<!-- ==========================================
+                 포스터 상단
+            =========================================== -->
+<header class="poster-header">
+<div class="poster-header__eyebrow">
+                2026 동아리 활동 전시
+              </div>
+<div class="poster-header__main">
+<h1 aria-label="동아리명 또는 주제를 입력하세요" class="poster-club-name" contenteditable="plaintext-only" data-edit-field="clubName" data-placeholder="동아리명 또는 주제를 입력하세요" id="preview-club-name" role="textbox" spellcheck="false">
+</h1>
+<div class="poster-header__meta">
+<span class="poster-type-badge" id="preview-club-type">
+                    자율동아리
+                  </span>
+<span class="poster-teacher">
+
+                    담당교사
+
+                    <strong aria-label="담당교사 이름" contenteditable="plaintext-only" data-edit-field="teacherName" data-placeholder="담당교사 이름" id="preview-teacher" role="textbox" spellcheck="false">
+</strong>
+</span>
+</div>
+</div>
+</header>
+<!-- ==========================================
+                 자유 레이아웃 캔버스
+            =========================================== -->
+<section aria-label="전시자료 내용" class="layout-canvas" id="layout-canvas">
+<!--
+                script.js에서 기본 블록을 생성한다.
+
+                기본 배치:
+
+                활동 1
+                - 활동 제목
+                - 활동 내용
+                - 사진 1
+                - 사진 2
+
+                활동 2
+                - 활동 제목
+                - 활동 내용
+                - 사진 1
+                - 사진 2
+
+                이후 사용자가 블록을 추가하면
+                같은 영역 안에 동적으로 추가한다.
+              -->
+</section>
+<!-- 편집 모드용 숨은 격자 -->
+<div aria-hidden="true" class="layout-grid-guide" id="layout-grid-guide">
+</div>
+</article>
+</div>
+</div>
+<!-- 미리보기 안내 -->
+<div class="preview-footer">
+<span aria-hidden="true" class="preview-footer__dot"></span>
+<span id="preview-footer-message">
+          입력한 내용이 실시간으로 반영됩니다.
+        </span>
+<span id="overflow-status" role="status"></span></div>
+</aside>
+</main>
+<!-- ======================================================
+       공통 사진 파일 선택
+  ======================================================= -->
+<input accept="image/jpeg,image/png,image/webp" hidden="" id="photo-file-input" type="file"/>
+<!-- ======================================================
+       동적 레이아웃 블록 Template
+  ======================================================= -->
+<template id="layout-block-template">
+<div class="layout-block" tabindex="0">
+<div class="layout-block__content">
+</div>
+<!-- 편집 모드에서만 표시 -->
+<button aria-label="블록 이동" class="layout-block__move-handle" title="드래그하여 이동" type="button">
+        ⋮⋮
+      </button>
+<div aria-hidden="true" class="layout-block__resize-handle">
+</div>
+</div>
+</template>
+<!-- ======================================================
+       기본 텍스트 블록 Template
+  ======================================================= -->
+
+<!-- ======================================================
+       기본 소제목 블록 Template
+  ======================================================= -->
+
+<!-- ======================================================
+       사진 블록 Template
+  ======================================================= -->
+
+<!-- ======================================================
+       클라우드 프로젝트 Dialog
+  ======================================================= -->
+<dialog class="dialog cloud-dialog" id="cloud-dialog">
+<div class="dialog__panel">
+<header class="dialog__header">
+<div>
+<h2>
+            클라우드 불러오기
+          </h2>
+<p>
+            Google Drive에 저장된 전시자료를 선택하세요.
+          </p>
+</div>
+<button aria-label="닫기" class="dialog-close" id="btn-close-cloud-dialog" type="button">
+          ×
+        </button>
+</header>
+<div class="cloud-filter">
+<button class="filter-chip is-active" data-project-filter="all" type="button">
+          전체
+        </button>
+<button class="filter-chip" data-project-filter="autonomous" type="button">
+          자율동아리
+        </button>
+<button class="filter-chip" data-project-filter="creative" type="button">
+          창체동아리
+        </button>
+<button class="filter-chip" data-project-filter="free-semester" type="button">자유학기</button></div>
+<div class="cloud-project-list" id="cloud-project-list">
+<p class="empty-state">
+          저장된 프로젝트를 불러오는 중입니다.
+        </p>
+</div>
+</div>
+</dialog>
+<!-- ======================================================
+       사진 위치 조정 Dialog
+  ======================================================= -->
+<dialog class="dialog crop-dialog" id="photo-crop-dialog">
+<div class="dialog__panel crop-dialog__panel">
+<header class="dialog__header">
+<div>
+<h2>
+            사진 위치 조정
+          </h2>
+<p>
+            사진을 드래그하여 보이는 위치를 조절하세요.
+          </p>
+</div>
+<button aria-label="닫기" class="dialog-close" id="btn-close-photo-dialog" type="button">
+          ×
+        </button>
+</header>
+<div class="crop-frame" id="crop-frame">
+<img alt="사진 위치 조정 미리보기" class="crop-image" id="crop-image"/>
+</div>
+<div class="crop-controls">
+<label class="crop-control">
+<span>
+            확대
+          </span>
+<input id="crop-zoom" max="4" min="1" step="0.05" type="range" value="1"/>
+</label>
+</div>
+<footer class="dialog__footer">
+<button class="btn btn--ghost" id="btn-crop-cancel" type="button">
+          취소
+        </button>
+<button class="btn btn--primary" id="btn-crop-apply" type="button">
+          적용
+        </button>
+</footer>
+</div>
+</dialog>
+<!-- ======================================================
+       확인 Dialog
+  ======================================================= -->
+<dialog class="dialog confirm-dialog" id="confirm-dialog">
+<div class="dialog__panel confirm-dialog__panel">
+<header class="confirm-dialog__header">
+<h2 id="confirm-title">
+          확인
+        </h2>
+</header>
+<p id="confirm-message">
+</p>
+<footer class="dialog__footer">
+<button class="btn btn--ghost" id="btn-confirm-cancel" type="button">
+          취소
+        </button>
+<button class="btn btn--primary" id="btn-confirm-ok" type="button">
+          확인
+        </button>
+</footer>
+</div>
+</dialog>
+<!-- ======================================================
+       Toast
+  ======================================================= -->
+<div aria-live="polite" class="toast" hidden="" id="toast" role="status">
+</div>
+<!-- ======================================================
+       전체 로딩 화면
+  ======================================================= -->
+<div class="loading-overlay" hidden="" id="loading-overlay">
+<div class="loading-box">
+<div aria-hidden="true" class="spinner">
+</div>
+<p id="loading-message">
+        처리 중입니다.
+      </p>
+</div>
+</div>
+</body>
+</html>
