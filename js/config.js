@@ -1,5 +1,5 @@
 export const APPS_SCRIPT_URL =
-  '앱스크립트 주소입력';
+  'https://script.google.com/macros/s/AKfycbz5FpPe6BD8ikxSgIK2r5AQ9vkmh-np5WJshqNA4JlHVgCJENSFkA4oemhLkFnOMtk4/exec';
 export const CONFIG = Object.freeze({
   TARGET_ACTIVITY_LENGTH: 150,
   GRID_COLUMNS: 24,
