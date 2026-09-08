@@ -2,18 +2,21 @@ import {
   clone
 } from './utils.js';
 export function createActivities() {
-  return Array.from({length: 4}, (_, i) => ({id: `activity_${i+1}`, title: '', content: ''}));
+  return Array.from({length: 8}, (_, i) => ({id: `activity_${i+1}`, title: '', content: ''}));
 }
 export function createDefaultBlocks() {
   return createActivities().flatMap((activity, i) => {
-    const x = i % 2 === 0 ? 1 : 14;
-    const y = i < 2 ? 1 : 49;
+    const lastRow = i >= 6;
+    const w = lastRow ? 12 : 8;
+    const x = lastRow ? 1+(i-6)*12 : 1+(i%3)*8;
+    const y = 1+Math.floor(i/3)*32;
     const base = {activityId: activity.id, z: 1, locked: true};
     return [
-      {...base, id: `${activity.id}_title`, type: 'activityTitle', x, y, w: 11, h: 5},
-      {...base, id: `${activity.id}_content`, type: 'activityContent', x, y: y+6, w: 11, h: 16},
-      ...[1,2].map((n) => ({...base, id: `${activity.id}_photo_${n}_block`, type: 'photo-caption',
-        slotId: `${activity.id}_photo_${n}`, x: x+(n-1)*6, y: y+24, w: 5, h: 20}))
+      {...base, id: `${activity.id}_title`, type: 'activityTitle', x, y, w, h: 3},
+      {...base, id: `${activity.id}_photo_block`, type: 'photo', slotId: `${activity.id}_photo`,
+        x, y:y+4, w, h: lastRow ? 12 : 9},
+      {...base, id: `${activity.id}_content`, type: 'activityContent',
+        x, y:y+(lastRow ? 17 : 14), w, h:lastRow ? 14 : 17}
     ];
   });
 }
@@ -21,6 +24,11 @@ export function createEmptyState() {
   return {
     schemaVersion: 4,
     pageSize: 'a2',
+    layoutVersion: 'exhibition-332-v1',
+    introduction: '',
+    reflections: ['', '', ''],
+    hiddenLayoutItems: [],
+    legacyBlocks: [],
     id:
       null,
     type:

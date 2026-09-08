@@ -3837,3 +3837,103 @@ body { font-size:16px; }
 @media(max-width:1100px) { .workspace { grid-template-columns:260px minmax(0,1fr); } .brand-text p,.brand-mark { display:none; } .app-header { padding:0 10px; } .app-header__brand { min-width:0; } .top-actions { flex-wrap:wrap; justify-content:flex-end; } .btn { font-size:13px; } }
 @media(max-width:760px) { :root { --header-height:112px; } .app-header { align-items:flex-start; padding:12px; flex-direction:column; gap:8px; } .app-header__right { width:100%; justify-content:flex-start; } .top-actions { gap:4px; flex-wrap:nowrap; } .top-actions__divider { display:none; } .top-actions .btn { font-size:12px; padding:0 6px; } .workspace { grid-template-columns:210px minmax(0,1fr); } .editor-scroll { padding:10px; } .preview-toolbar { min-height:112px; flex-basis:112px; flex-wrap:wrap; padding:10px; } .preview-toolbar__actions { flex-wrap:wrap; } .preview-stage { padding:16px; } }
 @media print { @page { size:A2 portrait; margin:0; } html,body { width:420mm; height:594mm; } .poster { width:420mm; height:594mm; print-color-adjust:exact; -webkit-print-color-adjust:exact; } [contenteditable] { box-shadow:none!important; } [contenteditable]:empty::before,.photo-inline-tools,.poster-photo-block__empty { display:none!important; } }
+
+/* Photo-first landscape cards. Text remains directly editable. */
+.poster-activity-title,.poster-subtitle-block { border-radius:14px; padding:12px 20px; }
+.poster-activity-title__text,.poster-subtitle-block__title { font-size:29px; }
+.poster-photo-block { border-radius:16px; border:0; background:#fff; }
+.poster-photo-block__frame { background:rgba(255,255,255,.68); }
+.poster-photo-block__caption { min-height:50px; max-height:80px; padding:12px 18px; font-size:19px; line-height:1.4; text-align:left; background:#fff; }
+.poster-activity-content { background:transparent; border-radius:0; padding:10px 14px; border-top:2px solid rgba(30,45,65,.15); }
+.poster-activity-content__text { font-size:20px; line-height:1.5; color:#384552; }
+
+/* One shared description for each pair of landscape images. */
+.poster-activity-content { padding:10px 14px; background:rgba(255,255,255,.8); border:0; border-radius:14px; }
+.poster-activity-content__text { font-size:24px; line-height:1.45; }
+
+/* Reference 002: title / club introduction / 3-3-2 activities / three reflections. */
+.poster-header { height:208px; padding:28px 42px 16px; }
+.poster-header__eyebrow { font-size:18px; margin-bottom:12px; }
+.poster-header__main { min-height:120px; padding:20px 28px; border-radius:22px; }
+.poster-club-name { font-size:48px; min-height:60px; max-height:116px; }
+.poster-introduction { position:absolute; left:42px; right:42px; top:222px; height:126px; padding:17px 24px; border-radius:22px; background:rgba(255,255,255,.6); }
+.poster-introduction h2 { margin:0 0 6px; color:var(--poster-accent); font-size:23px; line-height:1.2; }
+#preview-introduction { font-size:24px; line-height:1.4; height:68px; overflow:hidden; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
+.layout-canvas,.layout-grid-guide { top:374px; bottom:276px; left:42px; right:42px; }
+.poster-activity-title,.poster-subtitle-block { border-radius:14px 14px 14px 3px; padding:5px 12px; gap:8px; }
+.poster-activity-title__number,.poster-subtitle-block__number { width:30px; height:30px; flex-basis:30px; font-size:18px; border-radius:7px; }
+.poster-activity-title__text,.poster-subtitle-block__title { font-size:27px; line-height:1.2; min-height:32px; white-space:nowrap; }
+.poster-photo-block { border-radius:14px; }
+.poster-photo-block__empty { font-size:19px; gap:4px; }
+.poster-photo-block__empty span:first-child { width:40px; height:40px; font-size:28px; }
+.poster-activity-content { border-radius:14px; padding:8px 12px; background:rgba(255,255,255,.84); }
+.poster-activity-content__text { font-size:24px; line-height:1.25; }
+.poster-reflections { position:absolute; left:42px; right:42px; bottom:34px; height:218px; }
+.poster-reflections > h2 { color:var(--poster-accent); font-size:24px; line-height:1.2; margin:0 0 12px; }
+.reflection-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; height:174px; }
+.reflection-card { min-width:0; padding:14px 20px; border-radius:26px; background:rgba(255,255,255,.94); }
+.reflection-card h3 { color:var(--poster-accent); font-size:22px; line-height:1.2; margin:0 0 8px; }
+.reflection-card [contenteditable] { height:112px; overflow:hidden; font-size:24px; line-height:1.4; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
+
+/* Give introductions and each student reflection room for a 150-character result. */
+.poster-introduction { top:218px; height:148px; padding:12px 24px; }
+#preview-introduction { height:90px; line-height:1.25; }
+.layout-canvas,.layout-grid-guide { top:388px; bottom:416px; }
+.poster-activity-content__text { line-height:1.2; }
+.poster-reflections { height:372px; bottom:28px; }
+.reflection-grid { height:330px; }
+.reflection-card [contenteditable] { height:268px; line-height:1.2; }
+.review-dialog-panel { width:min(820px,calc(100vw - 30px)); }
+.review-fields { overflow-y:auto; padding:16px 22px; }
+.review-fields h3 { font-size:16px; margin:20px 0 10px; color:#253453; }
+.review-fields label { display:block; margin-bottom:10px; font-size:13px; }
+.review-fields textarea { display:block; width:100%; margin-top:5px; min-height:75px; padding:9px; border:1px solid #cbd3dc; border-radius:7px; font-size:15px; line-height:1.5; }
+.review-consent { padding:10px 22px; background:#f5f7fa; font-size:13px; }
+.review-consent p { margin:6px 0; }
+#review-error { color:#a33228; }
+
+/* Layout deletion controls are editing UI, never poster content. */
+[data-fixed-layout-item] { position: relative; }
+.layout-delete-button {
+  display: none; position: absolute; top: 3px; right: 3px; z-index: 20;
+  width: 24px; height: 24px; padding: 0; border: 1px solid #e0b7bc;
+  border-radius: 50%; background: #fff4f5; color: #9d3342;
+  font: 700 19px/22px sans-serif; cursor: pointer;
+}
+.poster[data-layout-editing="true"] .layout-delete-button { display: block; }
+.layout-delete-button:hover { background: #fbd9de; }
+.layout-delete-button:focus-visible { outline: 3px solid #a43b53; outline-offset: 2px; }
+.poster[data-layout-editing="true"] [data-fixed-layout-item] { outline: 1px dashed #8097b8; }
+.poster[data-layout-editing="true"] [data-fixed-layout-item].is-selected { outline: 3px solid #497ecb; }
+.poster.is-exporting .layout-delete-button { display: none !important; }
+@media print { .layout-delete-button { display: none !important; } }
+
+/* Align the teacher label and editable name with the header typography. */
+.poster-header__meta { gap: 10px; }
+.poster-teacher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, .85);
+}
+.poster-teacher__label { flex: 0 0 auto; white-space: nowrap; }
+.poster-teacher strong {
+  display: block;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  max-width: 280px;
+  min-height: 26px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: #fff;
+  overflow-wrap: anywhere;
+}

@@ -60,7 +60,6 @@
 <h2>편집 도구</h2>
 <p>글과 사진은 용지에서 직접 편집합니다.</p>
 </div>
-
 </div>
 <div class="editor-scroll">
 <!-- ================================================
@@ -101,9 +100,7 @@
               </p>
 </div>
 <!-- 동아리명 -->
-
 <!-- 담당교사 -->
-
 </div>
 </section>
 <!-- ================================================
@@ -115,16 +112,9 @@
                 ✦
               </div>
 <div>
-<strong>
-                  전체 활동 AI로 다듬기
-                </strong>
-<p>
-                  작성한 모든 활동의 제목과 내용을 한 번에 자연스럽게 정리합니다.
-                </p>
-<p class="ai-panel__privacy">
-                  AI에는 활동 제목과 활동 내용만 전송됩니다.
-                  담당교사, 동아리명, 사진 및 사진 설명은 전송되지 않습니다.
-                </p>
+<strong>AI로 전체 문구 검토</strong>
+<p>동아리명·소개·활동 내용 8개·소감 3개를 구분하여 검토합니다. 전송 원문 합계는 3,000자 이하, 결과는 각 150자 이하입니다.</p>
+<p class="ai-panel__privacy">담당교사·활동 제목·사진은 AI에 보내지 않습니다. 전송 화면에서 이름·학번·연락처를 확인해 주세요. 자동 검사는 모든 개인정보를 찾아내지는 못합니다.</p>
 <p class="ai-panel__cache">
                   같은 내용을 연속으로 요청하면 5분 동안 동일한 결과가 표시될 수 있습니다.
                 </p>
@@ -134,9 +124,7 @@
 <button class="btn btn--ghost" hidden="" id="btn-ai-undo" type="button">
                 AI 수정 취소
               </button>
-<button class="btn btn--ai" id="btn-ai-improve-all" type="button">
-                ✦ 전체 활동 다듬기
-              </button>
+<button class="btn btn--ai" id="btn-ai-improve-all" type="button">전체 문구 검토</button>
 </div>
 </div></section>
 <!-- ================================================
@@ -221,19 +209,6 @@
                   </strong>
 <small>
                     사진만 표시
-                  </small>
-</span>
-</button>
-<button class="block-add-button" data-add-block-type="photo-caption" disabled="" type="button">
-<span aria-hidden="true" class="block-add-button__icon">
-                  ▣
-                </span>
-<span>
-<strong>
-                    사진 + 설명
-                  </strong>
-<small>
-                    캡션이 있는 사진
                   </small>
 </span>
 </button>
@@ -324,15 +299,13 @@
                     자율동아리
                   </span>
 <span class="poster-teacher">
-
-                    담당교사
-
+<span class="poster-teacher__label">담당교사</span>
                     <strong aria-label="담당교사 이름" contenteditable="plaintext-only" data-edit-field="teacherName" data-placeholder="담당교사 이름" id="preview-teacher" role="textbox" spellcheck="false">
 </strong>
 </span>
 </div>
 </div>
-</header>
+</header><section aria-label="동아리 소개" class="poster-introduction"><h2>동아리 소개</h2><div aria-label="동아리 소개" contenteditable="plaintext-only" data-edit-field="introduction" data-placeholder="동아리의 목적과 주요 활동을 소개해 주세요." id="preview-introduction" role="textbox" spellcheck="false"></div></section>
 <!-- ==========================================
                  자유 레이아웃 캔버스
             =========================================== -->
@@ -361,7 +334,7 @@
 <!-- 편집 모드용 숨은 격자 -->
 <div aria-hidden="true" class="layout-grid-guide" id="layout-grid-guide">
 </div>
-</article>
+<section aria-label="학생 소감" class="poster-reflections"><h2>함께한 학생들의 이야기</h2><div class="reflection-grid"><article class="reflection-card"><h3>소감 01</h3><div aria-label="학생 소감 1" contenteditable="plaintext-only" data-edit-field="reflection" data-placeholder="이름 없이 활동 소감을 입력해 주세요." data-reflection-index="0" id="preview-reflection-0" role="textbox" spellcheck="false"></div></article><article class="reflection-card"><h3>소감 02</h3><div aria-label="학생 소감 2" contenteditable="plaintext-only" data-edit-field="reflection" data-placeholder="이름 없이 활동 소감을 입력해 주세요." data-reflection-index="1" id="preview-reflection-1" role="textbox" spellcheck="false"></div></article><article class="reflection-card"><h3>소감 03</h3><div aria-label="학생 소감 3" contenteditable="plaintext-only" data-edit-field="reflection" data-placeholder="이름 없이 활동 소감을 입력해 주세요." data-reflection-index="2" id="preview-reflection-2" role="textbox" spellcheck="false"></div></article></div></section></article>
 </div>
 </div>
 <!-- 미리보기 안내 -->
@@ -395,15 +368,12 @@
 <!-- ======================================================
        기본 텍스트 블록 Template
   ======================================================= -->
-
 <!-- ======================================================
        기본 소제목 블록 Template
   ======================================================= -->
-
 <!-- ======================================================
        사진 블록 Template
   ======================================================= -->
-
 <!-- ======================================================
        클라우드 프로젝트 Dialog
   ======================================================= -->
@@ -518,5 +488,5 @@
       </p>
 </div>
 </div>
-</body>
+<dialog class="dialog" id="ai-review-dialog"><div class="dialog__panel review-dialog-panel"><header class="dialog__header"><div><h2>AI에 보낼 문구 확인</h2><p>아래 13항목만 전송됩니다. 이름·학번·연락처가 있으면 여기서 삭제해 주세요.</p></div></header><div class="review-fields" id="review-fields"></div><div class="review-consent"><p id="review-total"></p><p>입력문 합계 3,000자 기준입니다. 결과는 항목당 최대 150자입니다.</p><label><input id="review-privacy-check" type="checkbox"/> 전송 문구에 개인을 식별할 정보가 없는지 확인했습니다.</label><p id="review-error" role="alert"></p></div><footer class="dialog__footer"><button class="btn btn--ghost" id="btn-review-cancel" type="button">취소</button><button class="btn btn--primary" id="btn-review-send" type="button">확인한 문구 전송</button></footer></div></dialog></body>
 </html>

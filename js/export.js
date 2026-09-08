@@ -37,7 +37,7 @@ export async function capturePoster(
       {
         pixelRatio,
         cacheBust: true,
-        filter: node => !node.classList?.contains('photo-inline-tools'),
+        filter: node => !node.classList?.contains('photo-inline-tools') && !node.classList?.contains('layout-delete-button'),
         width:
           dom.poster.offsetWidth,
         height:

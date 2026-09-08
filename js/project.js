@@ -1,3 +1,4 @@
+import {normalizeHiddenLayoutItems} from './layout-state.js';
 import {
   CONFIG
 } from './config.js';
@@ -177,7 +178,7 @@ async function saveProject(finalize) {
         projectId:
           saved.id
       });
-    if (loaded.project?.activities?.length !== state.activities.length || loaded.project?.type !== state.type || loaded.project?.blocks?.length !== state.blocks.length) {
+    if (loaded.project?.activities?.length !== state.activities.length || loaded.project?.type !== state.type || loaded.project?.blocks?.length !== state.blocks.length || (loaded.project?.introduction || '') !== state.introduction || JSON.stringify(loaded.project?.reflections || ['', '', '']) !== JSON.stringify(state.reflections) || JSON.stringify(normalizeHiddenLayoutItems(loaded.project?.hiddenLayoutItems)) !== JSON.stringify(normalizeHiddenLayoutItems(state.hiddenLayoutItems))) {
       await saveLocalDraftNow();
       throw new Error('서버가 새 자료 형식을 보존하지 못했습니다. 현재 작업은 브라우저에 보관했습니다. Apps Script의 활동 수·자료 종류·격자 제한을 확인해 주세요.');
     }
@@ -235,6 +236,11 @@ function buildProjectPayload() {
   return {
     schemaVersion: 4,
     pageSize: 'a2',
+    layoutVersion: 'exhibition-332-v1',
+    introduction: state.introduction,
+    reflections: state.reflections,
+    hiddenLayoutItems: normalizeHiddenLayoutItems(state.hiddenLayoutItems),
+    legacyBlocks: state.legacyBlocks || [],
     grid: {columns: 24, rows: 96},
     id:
       state.id,
@@ -606,57 +612,29 @@ async function newProject() {
   );
 }
 export function normalizeProjectState(project) {
-  const empty =
-    createEmptyState();
-  const activities = Array.from({length: Math.max(4, project.activities?.length || 0)}, (_, i) => ({
+  const empty = createEmptyState();
+  const activities = Array.from({length: Math.max(8, project.activities?.length || 0)}, (_, i) => ({
     id: project.activities?.[i]?.id || `activity_${i+1}`,
     title: project.activities?.[i]?.title || '', content: project.activities?.[i]?.content || ''
   }));
-  const isA2 = project.pageSize === 'a2' || project.schemaVersion >= 4 || project.blocks?.some(b => b.x+b.w-1 > 12 || b.y+b.h-1 > 48);
-  let blocks = Array.isArray(project.blocks) && project.blocks.length ? project.blocks : createDefaultBlocks();
-  if (!isA2 && project.blocks?.length) {
-    // Preserve the older activity text/photos, map them into the expanded default layout.
-    const extras = project.blocks.filter(b => !b.locked).map(b => ({...b, x: Math.min(24-b.w+1, b.x*2-1), y: Math.min(96-b.h+1, b.y*2-1)}));
-    blocks = [...createDefaultBlocks(), ...extras];
+  const current = project.layoutVersion === 'exhibition-332-v1';
+  let photos = (Array.isArray(project.photos) ? project.photos : []).map(photo => ({...photo, crop:normalizeCrop(photo.crop)}));
+  if (!current) {
+    // Keep the first photo attached to its original activity; use photos 2 in new activities 5–8.
+    photos = photos.map(photo => {
+      const match = /^activity_([1-4])_photo_([12])$/.exec(photo.slotId);
+      return match ? {...photo, slotId:`activity_${Number(match[1])+(match[2]==='2'?4:0)}_photo`} : photo;
+    });
   }
   return {
-    ...empty,
-    id:
-      project.id ||
-      null,
-    schemaVersion: 4,
-    pageSize: 'a2',
+    ...empty, id:project.id || null, schemaVersion:4, pageSize:'a2', layoutVersion:'exhibition-332-v1',
+    introduction: String(project.introduction || ''),
+    reflections: Array.from({length:3}, (_,i)=>String(project.reflections?.[i] || '')),
+    hiddenLayoutItems: normalizeHiddenLayoutItems(project.hiddenLayoutItems),
+    legacyBlocks: current ? (project.legacyBlocks || []) : (project.blocks || []),
     type: ['creative','autonomous','free-semester'].includes(project.type) ? project.type : 'autonomous',
-    clubName:
-      project.clubName ||
-      '',
-    teacherName:
-      project.teacherName ||
-      '',
-    activities,
-    blocks,
-    photos:
-      Array.isArray(
-        project.photos
-      )
-        ? project.photos.map(
-            photo => ({
-              ...photo,
-              crop:
-                normalizeCrop(
-                  photo.crop
-                )
-            })
-          )
-        : [],
-    status:
-      project.status ||
-      'draft',
-    createdAt:
-      project.createdAt ||
-      null,
-    updatedAt:
-      project.updatedAt ||
-      null
+    clubName:project.clubName || '', teacherName:project.teacherName || '', activities,
+    blocks: current && Array.isArray(project.blocks) ? project.blocks : createDefaultBlocks(),
+    photos, status:project.status || 'draft', createdAt:project.createdAt || null, updatedAt:project.updatedAt || null
   };
 }

@@ -1,3 +1,4 @@
+import {FIXED_LAYOUT_ITEMS, removeLayoutItem} from './layout-state.js';
 import {
   CONFIG
 } from './config.js';
@@ -17,11 +18,22 @@ import {
 } from './utils.js';
 import {
   selectPhotoForSlot,
-  openCropDialog,
-  removePhotoRecord
+  openCropDialog
 } from './photos.js';
 let pointerState = null;
 export function initLayout() {
+  dom.poster.addEventListener('click', event => {
+    if (!getState().layoutEditing) return;
+    const button = event.target.closest('[data-delete-layout-item]');
+    if (button) {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteLayoutItem(button.dataset.deleteLayoutItem);
+      return;
+    }
+    const fixed = event.target.closest('[data-fixed-layout-item]');
+    if (fixed) updateState(state => {state.selectedBlockId = fixed.dataset.fixedLayoutItem;}, {dirty:false});
+  });
   dom.layoutToggle.addEventListener(
     'change',
     toggleLayoutEditing
@@ -94,6 +106,16 @@ export function renderLayoutInspector() {
         item.id ===
         state.selectedBlockId
     );
+  const fixed = FIXED_LAYOUT_ITEMS[state.selectedBlockId];
+  dom.btnBlockFront.disabled = !block;
+  dom.btnBlockBack.disabled = !block;
+  dom.btnBlockDelete.disabled = false;
+  if (enabled && fixed && !(state.hiddenLayoutItems || []).includes(state.selectedBlockId)) {
+    dom.blockInspector.hidden = false;
+    dom.selectedBlockLabel.textContent = fixed.label;
+    dom.blockInspectorContent.textContent = '고정 영역입니다. 삭제할 수 있습니다.';
+    return;
+  }
   if (
     !enabled ||
     !block
@@ -141,7 +163,7 @@ export function renderLayoutInspector() {
     )
   );
   dom.btnBlockDelete.disabled =
-    block.locked;
+    false;
 }
 function toggleLayoutEditing() {
   updateState(
@@ -161,6 +183,7 @@ function toggleLayoutEditing() {
   );
 }
 function selectBlockFromCanvas(event) {
+  if (event.target.closest('[data-delete-layout-item]')) return;
   const state =
     getState();
   if (
@@ -246,12 +269,8 @@ function addBlock(type) {
   ) {
     block.slotId =
       createId('photo');
-    block.w =
-      5;
-    block.h =
-      type === 'photo-caption'
-        ? 8
-        : 7;
+    block.w = 11;
+    block.h = type === 'photo-caption' ? 14 : 12;
   }
   const position =
     findPosition(
@@ -687,6 +706,7 @@ function bringFront() {
   );
 }
 function sendBack() {
+  if (!getState().blocks.some(block => block.id === getState().selectedBlockId)) return;
   const id =
     getState()
       .selectedBlockId;
@@ -725,64 +745,20 @@ function sendBack() {
     }
   );
 }
-async function deleteSelectedBlock() {
-  const state =
-    getState();
-  const block =
-    state.blocks.find(
-      item =>
-        item.id ===
-        state.selectedBlockId
-    );
-  if (
-    !block
-  ) {
-    return;
-  }
-  if (
-    block.locked
-  ) {
-    showToast(
-      '기본 활동 블록은 삭제할 수 없습니다.',
-      'error'
-    );
-    return;
-  }
-  const confirmed =
-    await confirmAction(
-      '블록 삭제',
-      '선택한 블록을 삭제할까요?'
-    );
-  if (
-    !confirmed
-  ) {
-    return;
-  }
-  if (
-    block.slotId
-  ) {
-    removePhotoRecord(
-      block.slotId
-    );
-  }
-  updateState(
-    state => {
-      state.blocks =
-        state.blocks.filter(
-          item =>
-            item.id !==
-            block.id
-        );
-      state.selectedBlockId =
-        null;
-    }
-  );
+function deleteSelectedBlock() {
+  return deleteLayoutItem(getState().selectedBlockId);
+}
+async function deleteLayoutItem(id) {
+  const state = getState();
+  if (!state.layoutEditing || (!state.blocks.some(block => block.id === id) && !Object.hasOwn(FIXED_LAYOUT_ITEMS, id))) return;
+  if (!await confirmAction('블록 삭제', '선택한 박스를 삭제할까요? 레이아웃 초기화로 기본 박스를 복원할 수 있습니다.')) return;
+  updateState(state => { removeLayoutItem(state, id); });
 }
 async function resetLayout() {
   const confirmed =
     await confirmAction(
       '레이아웃 초기화',
-      '활동 1~4의 기본 배치로 되돌릴까요? 추가한 블록과 내용은 유지됩니다.'
+      '삭제한 기본 박스와 학생 소감을 복원하고 3·3·2 배치로 되돌릴까요? 추가한 블록과 텍스트는 유지됩니다. 삭제한 사진 파일은 다시 추가해야 합니다.'
     );
   if (
     !confirmed
@@ -791,6 +767,7 @@ async function resetLayout() {
   }
   updateState(
     state => {
+      state.hiddenLayoutItems = [];
       const defaults =
         createDefaultBlocks();
       const extras =

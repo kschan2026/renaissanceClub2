@@ -1,3 +1,4 @@
+import {FIXED_LAYOUT_ITEMS} from './layout-state.js';
 import { openCropDialog, selectPhotoForSlot, removePhoto } from './photos.js';
 import { checkOverflow } from './editor.js';
 import {
@@ -45,6 +46,7 @@ export function initPreview() {
 export function renderAll() {
   renderPosterHeader();
   renderBlocks();
+  renderFixedLayoutItems();
   requestAnimationFrame(checkOverflow);
 }
 function renderPosterHeader() {
@@ -62,6 +64,8 @@ function renderPosterHeader() {
     state.teacherName || '';
   dom.previewClubType.textContent =
     ({creative:'창체동아리', autonomous:'자율동아리', 'free-semester':'자유학기'})[state.type] || '자율동아리';
+  document.getElementById('preview-introduction').textContent = state.introduction || '';
+  state.reflections.forEach((value, i) => { document.getElementById(`preview-reflection-${i}`).textContent = value; });
   dom.previewFooterMessage.textContent =
     state.layoutEditing
       ? '블록을 선택하여 이동하거나 크기를 조절할 수 있습니다.'
@@ -95,6 +99,7 @@ function createBlockElement(block) {
     element.querySelector(
       '.layout-block__content'
     );
+  element.appendChild(makeDeleteButton(block.id, '블록'));
   element.dataset.blockId =
     block.id;
   element.dataset.blockType =
@@ -246,7 +251,7 @@ function renderActivityContent(
     'poster-activity-content__text';
   text.textContent =
     activity?.content || '';
-  makeEditable(text, block.type === 'activityContent' ? 'content' : 'text', '활동 내용을 입력하세요', {activityId: block.activityId, blockId: block.id});
+  makeEditable(text, block.type === 'activityContent' ? 'content' : 'text', '활동 내용을 약 150자로 설명해 주세요', {activityId: block.activityId, blockId: block.id});
   wrapper.appendChild(
     text
   );
@@ -309,7 +314,7 @@ function renderText(
     'poster-text-block__text';
   text.textContent =
     block.text || '';
-  makeEditable(text, block.type === 'activityContent' ? 'content' : 'text', '활동 내용을 입력하세요', {activityId: block.activityId, blockId: block.id});
+  makeEditable(text, block.type === 'activityContent' ? 'content' : 'text', '활동 내용을 약 150자로 설명해 주세요', {activityId: block.activityId, blockId: block.id});
   wrapper.appendChild(
     text
   );
@@ -377,24 +382,6 @@ function renderPhoto(
   figure.appendChild(
     frame
   );
-  if (
-    block.type ===
-      'photo-caption' ||
-    photo?.caption
-  ) {
-    const caption =
-      document.createElement(
-        'figcaption'
-      );
-    caption.className =
-      'poster-photo-block__caption';
-    caption.textContent =
-      photo?.caption || '';
-    makeEditable(caption, 'caption', '사진 설명을 입력하세요', {slotId: block.slotId});
-    figure.appendChild(
-      caption
-    );
-  }
   const tools = document.createElement('div'); tools.className = 'photo-inline-tools';
   const actions = [['사진 변경', () => selectPhotoForSlot(block.slotId)], ['위치 조정', () => openCropDialog(block.slotId)], ['사진 삭제', () => removePhoto(block.slotId)]];
   if (photo?.dataUrl) actions.forEach(([label, callback]) => {
@@ -442,4 +429,30 @@ function setPreviewZoom(value) {
   dom.btnZoomIn.disabled = previewZoom >= CONFIG.PREVIEW.MAX_ZOOM;
   dom.zoomLabel.textContent =
     `${Math.round(previewZoom * 100)}%`;
+}
+
+function makeDeleteButton(id, label) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'layout-delete-button';
+  button.dataset.deleteLayoutItem = id;
+  button.textContent = '×';
+  button.title = `${label} 삭제`;
+  button.setAttribute('aria-label', `${label} 삭제`);
+  button.contentEditable = 'false';
+  return button;
+}
+function renderFixedLayoutItems() {
+  const state = getState();
+  for (const [id, item] of Object.entries(FIXED_LAYOUT_ITEMS)) {
+    const element = dom.poster.querySelector(item.selector);
+    element.dataset.fixedLayoutItem = id;
+    element.hidden = (state.hiddenLayoutItems || []).includes(id);
+    element.classList.toggle('is-selected', state.selectedBlockId === id);
+    element.querySelector(':scope > .layout-delete-button')?.remove();
+    element.appendChild(makeDeleteButton(id, item.label));
+  }
+  const cards = [...dom.poster.querySelectorAll('.reflection-card')];
+  dom.poster.querySelector('.reflection-grid').style.gridTemplateColumns = `repeat(${Math.max(1, cards.filter(card => !card.hidden).length)}, 1fr)`;
+  dom.poster.querySelector('.poster-reflections').hidden = cards.every(card => card.hidden);
 }
