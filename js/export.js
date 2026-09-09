@@ -1,238 +1,134 @@
-import {
-  CONFIG
-} from './config.js';
-import {
-  dom
-} from './dom.js';
-import {
-  getState
-} from './store.js';
-import {
-  safeFileName
-} from './utils.js';
-export async function capturePoster(
-  pixelRatio
-) {
-  await loadHtmlToImage();
-  if (
-    !window.htmlToImage?.toPng
-  ) {
-    throw new Error(
-      'PNG 생성 기능을 불러오지 못했습니다.'
-    );
-  }
-  dom.poster.classList.add(
-    'is-exporting'
-  );
-  const previousLayout =
-    dom.poster.dataset
-      .layoutEditing;
-  dom.poster.dataset.layoutEditing =
-    'false';
-  try {
-    await document.fonts.ready;
-    await waitForImages();
-    return await window.htmlToImage.toPng(
-      dom.poster,
-      {
-        pixelRatio,
-        cacheBust: true,
-        filter: node => !node.classList?.contains('photo-inline-tools') && !node.classList?.contains('layout-delete-button'),
-        width:
-          dom.poster.offsetWidth,
-        height:
-          dom.poster.offsetHeight,
-        style: {
-          transform:
-            'none',
-          transformOrigin:
-            'top left'
-        }
-      }
-    );
-  } finally {
-    dom.poster.classList.remove(
-      'is-exporting'
-    );
-    dom.poster.dataset.layoutEditing =
-      previousLayout;
-  }
+import { CONFIG } from './config.js';
+import { dom } from './dom.js';
+import { getState } from './store.js';
+import { safeFileName } from './utils.js';
+
+const downloadUrls = [];
+const excluded = '.photo-inline-tools,.layout-delete-button,.layout-block__move-handle,.layout-block__resize-handle,.layout-grid-guide';
+function deadline(promise, label, ms = 20000) {
+  let timer;
+  return Promise.race([promise, new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} 시간이 초과되었습니다. 다시 시도해 주세요.`)), ms);
+  })]).finally(() => clearTimeout(timer));
 }
-export async function downloadCompleteFiles() {
-  await loadHtmlToImage();
-  await loadJsPdf();
-  const image =
-    await capturePoster(
-      CONFIG.PREVIEW.DOWNLOAD_PIXEL_RATIO
-    );
-  const state =
-    getState();
-  const name =
-    safeFileName(
-      state.clubName ||
-      '동아리_전시자료'
-    );
-  downloadDataUrl(
-    image,
-    `${name}.png`
-  );
-  const JsPdf =
-    window.jspdf?.jsPDF;
-  if (
-    !JsPdf
-  ) {
-    throw new Error(
-      'PDF 생성 기능을 불러오지 못했습니다.'
-    );
+function loadImage(source) {
+  return deadline(new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('출력용 이미지를 만들지 못했습니다. 사진을 확인한 뒤 다시 시도해 주세요.'));
+    image.src = source;
+  }), '이미지 생성');
+}
+function copyStyle(style, target) {
+  for (const name of Array.from(style)) target.style.setProperty(name, style.getPropertyValue(name));
+  target.style.animation = 'none'; target.style.transition = 'none';
+}
+function appendPseudo(source, target, pseudo) {
+  const style = getComputedStyle(source, pseudo), content = style.content;
+  if (!content || content === 'none' || content === 'normal' || style.display === 'none') return;
+  const element = document.createElement('span'); copyStyle(style, element); element.style.content = 'normal';
+  if (content.startsWith('"')) {
+    try { element.textContent = JSON.parse(content); } catch { element.textContent = content.slice(1, -1); }
   }
-  const pdf =
-    new JsPdf({
-      orientation:
-        'portrait',
-      unit:
-        'mm',
-      format:
-        'a2',
-      compress:
-        true
-    });
-  pdf.addImage(
-    image,
-    'PNG',
-    0,
-    0,
-    420,
-    594
-  );
-  pdf.save(
-    `${name}.pdf`
-  );
+  if (pseudo === '::before') target.prepend(element); else target.append(element);
 }
-function downloadDataUrl(
-  dataUrl,
-  name
-) {
-  const link =
-    document.createElement(
-      'a'
-    );
-  link.href =
-    dataUrl;
-  link.download =
-    name;
-  document.body.appendChild(
-    link
-  );
-  link.click();
-  link.remove();
-}
-async function loadHtmlToImage() {
-  if (
-    window.htmlToImage
-  ) {
-    return;
-  }
-  await loadScript(
-    CONFIG.LIBRARIES.HTML_TO_IMAGE,
-    'html-to-image'
-  );
-}
-async function loadJsPdf() {
-  if (
-    window.jspdf?.jsPDF
-  ) {
-    return;
-  }
-  await loadScript(
-    CONFIG.LIBRARIES.JSPDF,
-    'jspdf'
-  );
-}
-function loadScript(
-  source,
-  id
-) {
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-      const old =
-        document.querySelector(
-          `script[data-lib="${id}"]`
-        );
-      if (
-        old
-      ) {
-        if (
-          old.dataset.loaded ===
-          'true'
-        ) {
-          resolve();
-          return;
-        }
-        old.addEventListener(
-          'load',
-          resolve,
-          {
-            once: true
-          }
-        );
-        return;
-      }
-      const script =
-        document.createElement(
-          'script'
-        );
-      script.src =
-        source;
-      script.dataset.lib =
-        id;
-      script.onload =
-        () => {
-          script.dataset.loaded =
-            'true';
-          resolve();
-        };
-      script.onerror =
-        () => {
-          script.remove();
-          reject(
-            new Error(
-              '외부 저장 라이브러리를 불러오지 못했습니다.'
-            )
-          );
-        };
-      document.head.appendChild(
-        script
-      );
+async function exportClone(source) {
+  if (source.nodeType === Node.TEXT_NODE) return source.cloneNode();
+  if (source.nodeType !== Node.ELEMENT_NODE || source.matches(excluded)) return null;
+  const style = getComputedStyle(source);
+  if (style.display === 'none') return null;
+  const target = source.cloneNode(false); copyStyle(style, target);
+  target.removeAttribute('contenteditable'); target.removeAttribute('tabindex');
+  if (source.tagName === 'IMG') {
+    const src = source.currentSrc || source.src;
+    if (src && !src.startsWith('data:')) {
+      const response = await deadline(fetch(src), '사진 읽기');
+      if (!response.ok) throw new Error('사진을 읽지 못했습니다. 해당 사진을 다시 추가해 주세요.');
+      const blob = await response.blob();
+      target.src = await new Promise((resolve, reject) => {
+        const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob);
+      });
     }
-  );
+    target.removeAttribute('srcset');
+  }
+  for (const child of source.childNodes) {
+    const cloned = await exportClone(child); if (cloned) target.append(cloned);
+  }
+  appendPseudo(source, target, '::before'); appendPseudo(source, target, '::after');
+  return target;
 }
-async function waitForImages() {
-  const images =
-    Array.from(
-      dom.poster.querySelectorAll(
-        'img'
-      )
-    );
-  await Promise.all(
-    images.map(
-      image => {
-        if (
-          image.complete
-        ) {
-          return Promise.resolve();
-        }
-        return new Promise(
-          resolve => {
-            image.onload =
-              resolve;
-            image.onerror =
-              resolve;
-          }
-        );
-      }
-    )
-  );
+export async function capturePoster(pixelRatio = 2) {
+  const previousLayout = dom.poster.dataset.layoutEditing;
+  dom.poster.classList.add('is-exporting'); dom.poster.dataset.layoutEditing = 'false';
+  try {
+    await deadline(document.fonts.ready, '글꼴 준비');
+    const width = dom.poster.offsetWidth, height = dom.poster.offsetHeight;
+    const clone = await exportClone(dom.poster);
+    Object.assign(clone.style, {transform:'none', margin:'0', position:'relative', left:'0', top:'0', width:`${width}px`, height:`${height}px`});
+    const markup = new XMLSerializer().serializeToString(clone);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%">${markup}</foreignObject></svg>`;
+    const image = await loadImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(width * pixelRatio); canvas.height = Math.round(height * pixelRatio);
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('브라우저에서 출력용 캔버스를 만들지 못했습니다.');
+    context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const png = canvas.toDataURL('image/png');
+    if (!png.startsWith('data:image/png')) throw new Error('출력 이미지가 너무 큽니다. 브라우저를 다시 열고 시도해 주세요.');
+    canvas.width = canvas.height = 0;
+    return png;
+  } catch (error) {
+    if (error.name === 'SecurityError') throw new Error('브라우저가 사진의 출력 접근을 차단했습니다. 사진을 파일로 다시 추가해 주세요.');
+    throw error;
+  } finally {
+    dom.poster.classList.remove('is-exporting'); dom.poster.dataset.layoutEditing = previousLayout;
+  }
+}
+function dataBytes(dataUrl) {
+  return Uint8Array.from(atob(dataUrl.slice(dataUrl.indexOf(',') + 1)), char => char.charCodeAt(0));
+}
+// One-page A2 PDF, using byte-counted streams and JPEG data generated by the browser.
+export function createRasterPdf(jpeg, width, height) {
+  const encode = text => new TextEncoder().encode(text);
+  const chunks = [], offsets = [0]; let size = 0;
+  const push = value => { const bytes = typeof value === 'string' ? encode(value) : value; chunks.push(bytes); size += bytes.length; };
+  const object = (id, body) => { offsets[id] = size; push(`${id} 0 obj\n`); push(body); push('\nendobj\n'); };
+  const pageW = 420 * 72 / 25.4, pageH = 594 * 72 / 25.4;
+  push('%PDF-1.4\n');
+  object(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  object(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  object(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  offsets[4] = size;
+  push(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`);
+  push(jpeg); push('\nendstream\nendobj\n');
+  const commands = `q ${pageW} 0 0 ${pageH} 0 0 cm /Im0 Do Q\n`;
+  object(5, `<< /Length ${encode(commands).length} >>\nstream\n${commands}endstream`);
+  const xref = size;
+  push('xref\n0 6\n0000000000 65535 f \n');
+  for (let i = 1; i <= 5; i++) push(`${String(offsets[i]).padStart(10, '0')} 00000 n \n`);
+  push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(chunks, {type:'application/pdf'});
+}
+export async function downloadCompleteFiles(existingPng) {
+  const png = existingPng || await capturePoster(CONFIG.PREVIEW.DOWNLOAD_PIXEL_RATIO);
+  const image = await loadImage(png);
+  const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('PDF용 이미지를 만들지 못했습니다.');
+  context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height); context.drawImage(image, 0, 0);
+  const pdf = createRasterPdf(dataBytes(canvas.toDataURL('image/jpeg', .96)), canvas.width, canvas.height);
+  canvas.width = canvas.height = 0;
+  const name = safeFileName(getState().clubName || '동아리_전시자료');
+  downloadUrls.splice(0).forEach(url => URL.revokeObjectURL(url));
+  document.getElementById('export-download-links')?.remove();
+  const panel = document.createElement('div'); panel.id = 'export-download-links'; panel.className = 'export-download-links';
+  const label = document.createElement('span'); label.textContent = '파일 준비 완료 · 자동 저장이 안 되면 눌러주세요'; panel.append(label);
+  for (const [extension, blob] of [['png',new Blob([dataBytes(png)],{type:'image/png'})],['pdf',pdf]]) {
+    const link = document.createElement('a'); link.className = 'btn btn--ghost';
+    link.href = URL.createObjectURL(blob); downloadUrls.push(link.href);
+    link.download = `${name}.${extension}`; link.textContent = `${extension.toUpperCase()} 저장`; panel.append(link);
+  }
+  document.getElementById('btn-download').parentElement.append(panel);
+  panel.querySelectorAll('a').forEach(link => link.click());
 }

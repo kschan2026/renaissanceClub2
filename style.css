@@ -3939,6 +3939,8 @@ body { font-size:16px; }
 }
 
 /* Six photo-led activities and three ruled-paper reflection notes. */
+.export-download-links { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px; background:#f2f6fa; border-radius:8px; }
+.export-download-links > span { font-size:12px; color:#44546a; }
 .reflection-grid { gap: 22px; }
 .reflection-card {
   position: relative;

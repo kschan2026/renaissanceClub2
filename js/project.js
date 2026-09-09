@@ -205,7 +205,12 @@ async function saveProject(finalize) {
       showLoading(
         'PNG와 PDF 파일을 만드는 중입니다.'
       );
-      await downloadCompleteFiles();
+      try {
+        await downloadCompleteFiles(preview);
+      } catch (error) {
+        showToast(`Drive에 완성본은 저장되었습니다. 다운로드 준비 실패: ${error.message}`, 'error');
+        return;
+      }
       showToast(
         '완성본 저장을 완료했습니다.',
         'success'
