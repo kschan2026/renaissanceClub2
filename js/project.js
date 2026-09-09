@@ -27,6 +27,8 @@ import {
 } from './editor.js';
 import {
   capturePoster,
+  posterPdf,
+  blobDataUrl,
   downloadCompleteFiles
 } from './export.js';
 import {
@@ -118,7 +120,7 @@ async function saveProject(finalize) {
     const confirmed =
       await confirmAction(
         '완성본 저장',
-        'Google Drive에 완성본을 저장하고 PNG와 PDF 파일도 내려받을까요?'
+        'Google Drive에 PNG와 PDF 완성본을 함께 저장하고 두 파일을 내려받을까요?'
       );
     if (
       !confirmed
@@ -133,6 +135,7 @@ async function saveProject(finalize) {
   );
   try {
     let preview = null;
+    let pdf = null;
     /*
      * 작성 중 저장은 외부 이미지 라이브러리를
      * 사용하지 않아도 되도록 미리보기를 생략한다.
@@ -146,6 +149,7 @@ async function saveProject(finalize) {
         await capturePoster(
           CONFIG.PREVIEW.COMPLETE_PIXEL_RATIO
         );
+      pdf = await posterPdf(preview);
     }
     const request = {
       action:
@@ -166,6 +170,7 @@ async function saveProject(finalize) {
         dataUrl:
           preview
       };
+      request.pdf = {dataUrl: await blobDataUrl(pdf)};
     }
     const saved =
       await apiRequest(
@@ -206,9 +211,13 @@ async function saveProject(finalize) {
         'PNG와 PDF 파일을 만드는 중입니다.'
       );
       try {
-        await downloadCompleteFiles(preview);
+        await downloadCompleteFiles(preview, pdf);
       } catch (error) {
         showToast(`Drive에 완성본은 저장되었습니다. 다운로드 준비 실패: ${error.message}`, 'error');
+        return;
+      }
+      if (!saved.finalPdfSaved) {
+        showToast('PNG는 저장되었지만 서버가 PDF 저장을 확인하지 않았습니다. 최신 Apps Script로 배포를 업데이트해 주세요.', 'error');
         return;
       }
       showToast(

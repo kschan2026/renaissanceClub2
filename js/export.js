@@ -110,8 +110,7 @@ export function createRasterPdf(jpeg, width, height) {
   push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
   return new Blob(chunks, {type:'application/pdf'});
 }
-export async function downloadCompleteFiles(existingPng) {
-  const png = existingPng || await capturePoster(CONFIG.PREVIEW.DOWNLOAD_PIXEL_RATIO);
+export async function posterPdf(png) {
   const image = await loadImage(png);
   const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
   const context = canvas.getContext('2d');
@@ -119,6 +118,19 @@ export async function downloadCompleteFiles(existingPng) {
   context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height); context.drawImage(image, 0, 0);
   const pdf = createRasterPdf(dataBytes(canvas.toDataURL('image/jpeg', .96)), canvas.width, canvas.height);
   canvas.width = canvas.height = 0;
+  return pdf;
+}
+export function blobDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('PDF 전송 데이터를 만들지 못했습니다.'));
+    reader.readAsDataURL(blob);
+  });
+}
+export async function downloadCompleteFiles(existingPng, existingPdf) {
+  const png = existingPng || await capturePoster(CONFIG.PREVIEW.DOWNLOAD_PIXEL_RATIO);
+  const pdf = existingPdf || await posterPdf(png);
   const name = safeFileName(getState().clubName || '동아리_전시자료');
   downloadUrls.splice(0).forEach(url => URL.revokeObjectURL(url));
   document.getElementById('export-download-links')?.remove();
