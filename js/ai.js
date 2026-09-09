@@ -21,7 +21,7 @@ export function initAi() {
     }
     const values=[...dialog.querySelectorAll('textarea')].map(el=>el.value);
     try {
-      closeReview(validateReviewSections({clubName:values[0],introduction:values[1],activities:values.slice(2,10),reflections:values.slice(10)},getState().teacherName));
+      closeReview(validateReviewSections({clubName:values[0],introduction:values[1],activities:values.slice(2,8),reflections:values.slice(8)},getState().teacherName));
     } catch(error) { document.getElementById('review-error').textContent=error.message; }
   });
 }
@@ -30,7 +30,7 @@ function closeReview(value) {
 }
 function previewReview(sections) {
   const dialog=document.getElementById('ai-review-dialog'),list=document.getElementById('review-fields');list.replaceChildren();
-  const groups=[['동아리명',0,1],['동아리 소개',1,2],['활동 내용',2,10],['학생 소감',10,13]];
+  const groups=[['동아리명',0,1],['동아리 소개',1,2],['활동 내용',2,8],['학생 소감',8,11]];
   const entries=reviewEntries(sections);
   groups.forEach(([heading,start,end])=>{
     const section=document.createElement('section'),h=document.createElement('h3');h.textContent=heading;section.append(h);

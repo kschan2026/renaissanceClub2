@@ -11,14 +11,14 @@ export function containsPersonalInfo(text, teacherName = '') {
 }
 export function collectReviewSections(state) {
   return {clubName: state.clubName || '', introduction:state.introduction || '',
-    activities: Array.from({length:8},(_,i)=>state.activities[i]?.content || ''),
+    activities: Array.from({length:6},(_,i)=>state.activities[i]?.content || ''),
     reflections:Array.from({length:3},(_,i)=>state.reflections[i] || '')};
 }
 export function reviewEntries(sections) {
   return [['동아리명',sections.clubName],['동아리 소개',sections.introduction],...sections.activities.map((v,i)=>[`${i+1}번 활동 내용`,v]),...sections.reflections.map((v,i)=>[`${i+1}번 학생 소감`,v])];
 }
 export function validateReviewSections(sections, teacherName = '', output = false) {
-  if (!sections || !Array.isArray(sections.activities) || sections.activities.length!==8 || !Array.isArray(sections.reflections) || sections.reflections.length!==3) throw new Error('AI 검토 영역 구성이 올바르지 않습니다.');
+  if (!sections || !Array.isArray(sections.activities) || sections.activities.length!==6 || !Array.isArray(sections.reflections) || sections.reflections.length!==3) throw new Error('AI 검토 영역 구성이 올바르지 않습니다.');
   const clean = {clubName:sections.clubName,introduction:sections.introduction,activities:[...sections.activities],reflections:[...sections.reflections]};
   const entries=reviewEntries(clean);
   for (const [label,value] of entries) {

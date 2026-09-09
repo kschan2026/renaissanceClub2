@@ -236,11 +236,12 @@ function buildProjectPayload() {
   return {
     schemaVersion: 4,
     pageSize: 'a2',
-    layoutVersion: 'exhibition-332-v1',
+    layoutVersion: 'exhibition-33-v2',
     introduction: state.introduction,
     reflections: state.reflections,
     hiddenLayoutItems: normalizeHiddenLayoutItems(state.hiddenLayoutItems),
     legacyBlocks: state.legacyBlocks || [],
+    legacyRemovedActivities: state.legacyRemovedActivities || [],
     grid: {columns: 24, rows: 96},
     id:
       state.id,
@@ -613,28 +614,42 @@ async function newProject() {
 }
 export function normalizeProjectState(project) {
   const empty = createEmptyState();
-  const activities = Array.from({length: Math.max(8, project.activities?.length || 0)}, (_, i) => ({
+  const activities = Array.from({length: 6}, (_, i) => ({
     id: project.activities?.[i]?.id || `activity_${i+1}`,
     title: project.activities?.[i]?.title || '', content: project.activities?.[i]?.content || ''
   }));
-  const current = project.layoutVersion === 'exhibition-332-v1';
+  const current = project.layoutVersion === 'exhibition-33-v2';
+  const previous332 = project.layoutVersion === 'exhibition-332-v1';
   let photos = (Array.isArray(project.photos) ? project.photos : []).map(photo => ({...photo, crop:normalizeCrop(photo.crop)}));
-  if (!current) {
+  if (!current && !previous332) {
     // Keep the first photo attached to its original activity; use photos 2 in new activities 5–8.
     photos = photos.map(photo => {
       const match = /^activity_([1-4])_photo_([12])$/.exec(photo.slotId);
       return match ? {...photo, slotId:`activity_${Number(match[1])+(match[2]==='2'?4:0)}_photo`} : photo;
     });
   }
+  const defaults = createDefaultBlocks();
+  let blocks = current && Array.isArray(project.blocks) ? project.blocks : defaults;
+  if (previous332 && Array.isArray(project.blocks)) {
+    // Reflow retained defaults, without recreating boxes the user deleted.
+    const removedIds = new Set((project.activities || []).slice(6).map(activity => activity.id));
+    blocks = project.blocks.filter(block => !removedIds.has(block.activityId)).map(block => {
+      const replacement = defaults.find(item => item.id === block.id);
+      return replacement ? {...block, x:replacement.x, y:replacement.y, w:replacement.w, h:replacement.h} : block;
+    });
+  }
+  const usedSlots = new Set(blocks.map(block => block.slotId).filter(Boolean));
+  photos = photos.filter(photo => usedSlots.has(photo.slotId));
   return {
-    ...empty, id:project.id || null, schemaVersion:4, pageSize:'a2', layoutVersion:'exhibition-332-v1',
+    ...empty, id:project.id || null, schemaVersion:4, pageSize:'a2', layoutVersion:'exhibition-33-v2',
     introduction: String(project.introduction || ''),
     reflections: Array.from({length:3}, (_,i)=>String(project.reflections?.[i] || '')),
     hiddenLayoutItems: normalizeHiddenLayoutItems(project.hiddenLayoutItems),
     legacyBlocks: current ? (project.legacyBlocks || []) : (project.blocks || []),
+    legacyRemovedActivities: current ? (project.legacyRemovedActivities || []) : (project.activities || []).slice(6),
     type: ['creative','autonomous','free-semester'].includes(project.type) ? project.type : 'autonomous',
     clubName:project.clubName || '', teacherName:project.teacherName || '', activities,
-    blocks: current && Array.isArray(project.blocks) ? project.blocks : createDefaultBlocks(),
+    blocks,
     photos, status:project.status || 'draft', createdAt:project.createdAt || null, updatedAt:project.updatedAt || null
   };
 }

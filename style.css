@@ -3937,3 +3937,33 @@ body { font-size:16px; }
   color: #fff;
   overflow-wrap: anywhere;
 }
+
+/* Six photo-led activities and three ruled-paper reflection notes. */
+.reflection-grid { gap: 22px; }
+.reflection-card {
+  position: relative;
+  padding: 30px 22px 20px 36px;
+  border: 1px solid rgba(80, 65, 40, .13);
+  border-radius: 3px 3px 12px 3px;
+  background:
+    linear-gradient(to right, transparent 23px, rgba(210, 119, 111, .3) 23px, rgba(210, 119, 111, .3) 25px, transparent 25px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 29px, rgba(119, 151, 169, .23) 29px, rgba(119, 151, 169, .23) 30px),
+    #fffdf3;
+  box-shadow: 3px 5px 0 rgba(52, 66, 85, .08);
+}
+.reflection-card::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: calc(50% - 42px);
+  width: 84px;
+  height: 24px;
+  background: rgba(217, 192, 141, .65);
+  border-left: 2px dotted rgba(255, 255, 255, .65);
+  border-right: 2px dotted rgba(255, 255, 255, .65);
+  transform: rotate(-3deg);
+  pointer-events: none;
+}
+.reflection-card:nth-child(2)::before { background: rgba(161, 193, 179, .65); transform: rotate(2deg); }
+.reflection-card:nth-child(3)::before { background: rgba(190, 172, 209, .65); }
+.reflection-card [contenteditable] { height: 270px; font-size: 24px; line-height: 30px; }

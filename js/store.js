@@ -2,21 +2,20 @@ import {
   clone
 } from './utils.js';
 export function createActivities() {
-  return Array.from({length: 8}, (_, i) => ({id: `activity_${i+1}`, title: '', content: ''}));
+  return Array.from({length: 6}, (_, i) => ({id: `activity_${i+1}`, title: '', content: ''}));
 }
 export function createDefaultBlocks() {
   return createActivities().flatMap((activity, i) => {
-    const lastRow = i >= 6;
-    const w = lastRow ? 12 : 8;
-    const x = lastRow ? 1+(i-6)*12 : 1+(i%3)*8;
-    const y = 1+Math.floor(i/3)*32;
+    const w = 8;
+    const x = 1+(i%3)*8;
+    const y = 1+Math.floor(i/3)*48;
     const base = {activityId: activity.id, z: 1, locked: true};
     return [
       {...base, id: `${activity.id}_title`, type: 'activityTitle', x, y, w, h: 3},
       {...base, id: `${activity.id}_photo_block`, type: 'photo', slotId: `${activity.id}_photo`,
-        x, y:y+4, w, h: lastRow ? 12 : 9},
+        x, y:y+4, w, h: 25},
       {...base, id: `${activity.id}_content`, type: 'activityContent',
-        x, y:y+(lastRow ? 17 : 14), w, h:lastRow ? 14 : 17}
+        x, y:y+30, w, h:17}
     ];
   });
 }
@@ -24,7 +23,7 @@ export function createEmptyState() {
   return {
     schemaVersion: 4,
     pageSize: 'a2',
-    layoutVersion: 'exhibition-332-v1',
+    layoutVersion: 'exhibition-33-v2',
     introduction: '',
     reflections: ['', '', ''],
     hiddenLayoutItems: [],
