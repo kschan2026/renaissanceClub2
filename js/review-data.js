@@ -23,7 +23,7 @@ export function validateReviewSections(sections, teacherName = '', output = fals
   const entries=reviewEntries(clean);
   for (const [label,value] of entries) {
     if(typeof value!=='string') throw new Error(`${label}의 형식이 올바르지 않습니다.`);
-    if((output || label==='동아리명') && value.length>150) throw new Error(`${label}은 최대 150자여야 합니다. 결과를 적용하지 않았습니다.`);
+    if(output && value.length>150) throw new Error(`AI가 ${label}을 150자 이내로 정리하지 못했습니다. 원문은 유지됩니다. 다시 검토해 주세요.`);
     if(containsPersonalInfo(value,teacherName)) throw new Error(`${label}에 개인정보로 보이는 내용이 있습니다. 이름·학번·연락처를 지운 뒤 다시 검토해 주세요.`);
   }
   if(entries.reduce((sum,[,value])=>sum+value.length,0)>3000) throw new Error('검토 원문 합계는 공백 포함 3,000자 이하여야 합니다.');

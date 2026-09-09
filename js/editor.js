@@ -45,5 +45,5 @@ export function syncEditorFromState() {
 }
 export function checkOverflow() {
   const overflowing = [...dom.poster.querySelectorAll('[data-edit-field]')].filter(el => el.scrollHeight > el.clientHeight+3 || el.scrollWidth > el.clientWidth+3);
-  document.getElementById('overflow-status').textContent = overflowing.length ? ` · 글이 넘치는 영역 ${overflowing.length}개: 내용을 줄이거나 블록을 늘려 주세요.` : '';
+  document.getElementById('overflow-status').textContent = overflowing.length ? ` · 미리보기 영역을 넘는 글 ${overflowing.length}개 · 긴 문구는 AI로 다듬기에서 요약할 수 있습니다.` : '';
 }
