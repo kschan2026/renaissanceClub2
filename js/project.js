@@ -220,6 +220,10 @@ async function saveProject(finalize) {
         showToast('PNG는 저장되었지만 서버가 PDF 저장을 확인하지 않았습니다. 최신 Apps Script로 배포를 업데이트해 주세요.', 'error');
         return;
       }
+      if (saved.submissionWarning) {
+        showToast(saved.submissionWarning, 'error');
+        return;
+      }
       showToast(
         '완성본 저장을 완료했습니다.',
         'success'

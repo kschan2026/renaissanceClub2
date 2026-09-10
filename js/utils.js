@@ -68,6 +68,14 @@ export function normalizeCrop(crop = {}) {
       )
   };
 }
+export function cropOverflow(frameWidth, frameHeight, imageWidth, imageHeight, scale) {
+  if (!imageWidth || !imageHeight) return {x:0, y:0};
+  const cover = Math.max(frameWidth / imageWidth, frameHeight / imageHeight);
+  return {
+    x: Math.max(0, imageWidth * cover * scale - frameWidth),
+    y: Math.max(0, imageHeight * cover * scale - frameHeight)
+  };
+}
 export function safeFileName(value) {
   return (
     String(

@@ -18,6 +18,7 @@ import {
   clamp
 } from './utils.js';
 let currentSlotId = null;
+import { cropOverflow } from './utils.js';
 let cropSlotId = null;
 let cropState = null;
 let cropPointer = null;
@@ -59,6 +60,8 @@ export function initPhotos() {
     'pointerdown',
     beginCropDrag
   );
+  dom.cropFrame.addEventListener('pointercancel', endCropDrag);
+  dom.cropFrame.addEventListener('lostpointercapture', endCropDrag);
   window.addEventListener(
     'pointermove',
     moveCrop
@@ -430,8 +433,9 @@ export function openCropDialog(slotId) {
   dom.photoCropDialog.showModal();
   if (block) {
     const ratio = block.offsetWidth / Math.max(1, block.offsetHeight);
-    dom.cropFrame.style.height = `${Math.min(480, dom.cropFrame.clientWidth / ratio)}px`;
-    dom.cropFrame.style.width = `${Math.min(dom.photoCropDialog.querySelector('.dialog__panel').clientWidth - 36, 480 * ratio)}px`;
+    const width = Math.min(dom.photoCropDialog.querySelector('.dialog__panel').clientWidth - 36, 480 * ratio);
+    dom.cropFrame.style.width = `${width}px`;
+    dom.cropFrame.style.height = `${width / ratio}px`;
   }
 }
 function closeCropDialog() {
@@ -467,17 +471,22 @@ function updateCropPreview() {
   }
   dom.cropImage.style.objectPosition =
     `${cropState.x}% ${cropState.y}%`;
+  dom.cropImage.style.transformOrigin = `${cropState.x}% ${cropState.y}%`;
   dom.cropImage.style.transform =
     `scale(${cropState.scale})`;
 }
 function beginCropDrag(event) {
+  if (event.button !== 0 || !dom.cropImage.naturalWidth) return;
   if (
     !cropState
   ) {
     return;
   }
   event.preventDefault();
+  dom.cropFrame.setPointerCapture(event.pointerId);
+  const rect = dom.cropFrame.getBoundingClientRect();
   cropPointer = {
+    overflow: cropOverflow(rect.width, rect.height, dom.cropImage.naturalWidth, dom.cropImage.naturalHeight, cropState.scale),
     id:
       event.pointerId,
     startX:
@@ -511,14 +520,14 @@ function moveCrop(event) {
   cropState.x =
     clamp(
       cropPointer.cropX -
-      dx / rect.width * 100,
+      (cropPointer.overflow.x > 0.01 ? dx / cropPointer.overflow.x * 100 : 0),
       0,
       100
     );
   cropState.y =
     clamp(
       cropPointer.cropY -
-      dy / rect.height * 100,
+      (cropPointer.overflow.y > 0.01 ? dy / cropPointer.overflow.y * 100 : 0),
       0,
       100
     );
@@ -530,6 +539,7 @@ function endCropDrag(event) {
     event.pointerId ===
       cropPointer.id
   ) {
+    if (dom.cropFrame.hasPointerCapture(event.pointerId)) dom.cropFrame.releasePointerCapture(event.pointerId);
     cropPointer =
       null;
   }
@@ -662,6 +672,7 @@ function applyCropStyle(
     );
   image.style.objectPosition =
     `${value.x}% ${value.y}%`;
+  image.style.transformOrigin = `${value.x}% ${value.y}%`;
   image.style.transform =
     `scale(${value.scale})`;
 }

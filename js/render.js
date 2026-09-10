@@ -401,6 +401,7 @@ function applyCrop(
     );
   image.style.objectPosition =
     `${value.x}% ${value.y}%`;
+  image.style.transformOrigin = `${value.x}% ${value.y}%`;
   image.style.transform =
     `scale(${value.scale})`;
 }
